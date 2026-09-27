@@ -1,6 +1,7 @@
 "use client";
 
 import { LogOut, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/constants";
@@ -8,6 +9,8 @@ import { logout } from "@/lib/auth";
 import { initial } from "@/lib/bn";
 import { cn } from "@/lib/cn";
 import { useDb } from "@/lib/store";
+import { useT } from "@/lib/i18n";
+import { LanguageToggle } from "@/components/ui/language-toggle";
 import type { AdminProfile } from "@/lib/types";
 
 export function Sidebar({
@@ -24,21 +27,23 @@ export function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { settings } = useDb();
+  const { t } = useT();
 
   return (
     <aside className={cn("flex h-full w-[260px] shrink-0 flex-col bg-side px-5 py-7 text-side-text", className)}>
       <div className="flex items-start justify-between gap-2">
-        <div>
-          <Link href="/admin" className="block text-brand font-bold leading-snug text-white hover:text-white">
-            {settings.orgName}
-          </Link>
-          <p className="mb-8 mt-1 text-caption text-side-muted">{settings.orgSub}</p>
-        </div>
+        <Link href="/admin" className="flex items-start gap-2.5 text-white hover:text-white">
+          <Image src="/gov-logo.png" alt={t("বাংলাদেশ সরকারের প্রতীক")} width={36} height={36} className="size-9 shrink-0 rounded-full object-cover" />
+          <span>
+            <span className="block text-brand font-bold leading-snug">{settings.orgName}</span>
+            <span className="mb-8 mt-1 block text-caption text-side-muted">{settings.orgSub}</span>
+          </span>
+        </Link>
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            aria-label="মেনু বন্ধ করুন"
+            aria-label={t("মেনু বন্ধ করুন")}
             className="-mr-2 -mt-2 flex size-11 items-center justify-center rounded-control text-side-muted hover:bg-side-active hover:text-white"
           >
             <X size={20} />
@@ -46,7 +51,9 @@ export function Sidebar({
         )}
       </div>
 
-      <nav aria-label="প্রধান মেনু" className="flex flex-col gap-1">
+      <LanguageToggle tone="dark" className="mb-5" />
+
+      <nav aria-label={t("প্রধান মেনু")} className="flex flex-col gap-1">
         {NAV_ITEMS.map((item) => {
           const active = item.match(pathname);
           return (
@@ -66,7 +73,7 @@ export function Sidebar({
                 aria-hidden
                 className={cn("size-[7px] shrink-0 rounded-full", active ? "bg-side-dot-on" : "bg-side-dot")}
               />
-              {item.label}
+              {t(item.label)}
             </Link>
           );
         })}
@@ -81,7 +88,7 @@ export function Sidebar({
         </div>
         <div className="min-w-0 flex-1">
           <div className="truncate text-small font-semibold text-white">{profile.name}</div>
-          <div className="truncate text-[11px] text-side-muted">{profile.role}</div>
+          <div className="truncate text-[11px] text-side-muted">{t(profile.role)}</div>
         </div>
         <button
           type="button"
@@ -89,8 +96,8 @@ export function Sidebar({
             await logout();
             router.replace("/admin/login");
           }}
-          aria-label="লগ আউট"
-          title="লগ আউট"
+          aria-label={t("লগ আউট")}
+          title={t("লগ আউট")}
           className="flex size-11 shrink-0 items-center justify-center rounded-control text-side-muted hover:bg-side-active hover:text-white"
         >
           <LogOut size={18} />

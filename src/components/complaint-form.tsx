@@ -5,12 +5,13 @@ import { useRef, useState, type DragEvent, type FormEvent } from "react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/fields";
 import { useToast } from "@/components/ui/toast";
-import { fmtPhone, normalizePhone, toBn } from "@/lib/bn";
+import { normalizePhone } from "@/lib/bn";
 import { ACCEPTED_UPLOADS, MAX_ATTACHMENTS, MAX_UPLOAD_BYTES, PRIORITIES, PRIORITY_META } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { fileToAttachment, fmtBytes } from "@/lib/image";
 import { CATEGORY_DEPARTMENT } from "@/lib/seed";
 import { createComplaint, useDb } from "@/lib/store";
+import { useT } from "@/lib/i18n";
 import type { Attachment, Complaint, Priority } from "@/lib/types";
 
 type Errors = Partial<Record<string, string>>;
@@ -25,6 +26,7 @@ interface Props {
 export function ComplaintForm({ mode, actor, onCreated }: Props) {
   const { settings } = useDb();
   const toast = useToast();
+  const { t, tt, n, phone: fmtPhoneL } = useT();
   const formRef = useRef<HTMLFormElement>(null);
 
   const [department, setDepartment] = useState("");
@@ -74,22 +76,22 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
     const incoming = Array.from(list);
     const room = MAX_ATTACHMENTS - files.length;
     if (room <= 0) {
-      setFileError(`সর্বোচ্চ ${toBn(MAX_ATTACHMENTS)}টি ফাইল যুক্ত করা যাবে`);
+      setFileError(tt("maxFilesAllowed", { n: n(MAX_ATTACHMENTS) }));
       return;
     }
     const accepted: File[] = [];
     for (const f of incoming.slice(0, room)) {
       if (!ACCEPTED_UPLOADS.includes(f.type)) {
-        setFileError(`"${f.name}" — শুধু JPG, PNG বা PDF গ্রহণযোগ্য`);
+        setFileError(tt("onlyJpgPngPdf", { name: f.name }));
         continue;
       }
       if (f.size > MAX_UPLOAD_BYTES) {
-        setFileError(`"${f.name}" — ফাইলের আকার ৫ এমবির বেশি`);
+        setFileError(tt("fileTooLarge", { name: f.name }));
         continue;
       }
       accepted.push(f);
     }
-    if (incoming.length > room) setFileError(`সর্বোচ্চ ${toBn(MAX_ATTACHMENTS)}টি ফাইল যুক্ত করা যাবে`);
+    if (incoming.length > room) setFileError(tt("maxFilesAllowed", { n: n(MAX_ATTACHMENTS) }));
     const converted = await Promise.all(accepted.map(fileToAttachment));
     setFiles((s) => [...s, ...converted]);
   };
@@ -140,7 +142,7 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
         by: actor ?? "নাগরিক",
       });
       if (mode === "admin") {
-        toast(`অভিযোগ ${created.id} যুক্ত হয়েছে`);
+        toast(tt("complaintAddedToast", { id: created.id }));
         onCreated?.(created);
       } else {
         setDone(created);
@@ -148,7 +150,7 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } catch (err) {
-      toast(err instanceof Error ? err.message : "জমা দেওয়া যায়নি, আবার চেষ্টা করুন", "error");
+      toast(t(err instanceof Error ? err.message : "জমা দেওয়া যায়নি, আবার চেষ্টা করুন"), "error");
     } finally {
       setBusy(false);
     }
@@ -161,7 +163,7 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast("কপি করা যায়নি — আইডিটি হাতে লিখে রাখুন", "error");
+      toast(t("কপি করা যায়নি — আইডিটি হাতে লিখে রাখুন"), "error");
     }
   };
 
@@ -172,35 +174,37 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
           <Check size={28} strokeWidth={2.5} className="text-st-resolved" />
         </div>
         <h2 className="text-brand font-bold text-ink" role="status">
-          আপনার অভিযোগ সফলভাবে জমা হয়েছে
+          {t("আপনার অভিযোগ সফলভাবে জমা হয়েছে")}
         </h2>
         <p className="mt-2 max-w-[380px] text-small leading-relaxed text-muted">
-          আমাদের সংশ্লিষ্ট বিভাগ শীঘ্রই আপনার অভিযোগ পর্যালোচনা করবে। নিচের ট্র্যাকিং আইডি সংরক্ষণ করুন — অগ্রগতি জানতে এই আইডি ও আপনার মোবাইল নম্বর (
-          {fmtPhone(done.citizen.phone)}) লাগবে।
+          {tt("submittedHint", { phone: fmtPhoneL(done.citizen.phone) })}
         </p>
         <div className="mt-[22px] rounded-[10px] border border-dashed border-line-strong bg-canvas px-7 py-3.5">
-          <div className="text-[11px] text-muted">ট্র্যাকিং আইডি</div>
+          <div className="text-[11px] text-muted">{t("ট্র্যাকিং আইডি")}</div>
           <div className="text-h2 font-bold tracking-wide text-primary">{done.id}</div>
         </div>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Button variant="outline" onClick={copyId}>
             {copied ? <Check size={16} /> : <Copy size={16} />}
-            {copied ? "কপি হয়েছে" : "আইডি কপি করুন"}
+            {copied ? t("কপি হয়েছে") : t("আইডি কপি করুন")}
           </Button>
-          <LinkButton href={`/track?id=${done.id}`}>অগ্রগতি দেখুন</LinkButton>
+          <LinkButton href={`/track?id=${done.id}`}>{t("অগ্রগতি দেখুন")}</LinkButton>
         </div>
         <button
           type="button"
           onClick={reset}
           className="mt-5 min-h-11 px-3 text-small font-semibold text-primary hover:text-primary-hover"
         >
-          নতুন অভিযোগ জমা দিন
+          {t("নতুন অভিযোগ জমা দিন")}
         </button>
       </div>
     );
   }
 
-  const err = (k: string) => errors[k];
+  const err = (k: string) => {
+    const e = errors[k];
+    return e ? t(e) : undefined;
+  };
   const aria = (k: string) => ({
     "aria-invalid": err(k) ? (true as const) : undefined,
     "aria-describedby": err(k) ? `${k}-error` : undefined,
@@ -217,17 +221,17 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
       )}
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="সংশ্লিষ্ট দপ্তর" htmlFor="department" required error={err("department")}>
+        <Field label={t("সংশ্লিষ্ট দপ্তর")} htmlFor="department" required error={err("department")}>
           <Select id="department" value={department} onChange={(e) => setDepartment(e.target.value)} {...aria("department")}>
-            <option value="">নির্বাচন করুন</option>
+            <option value="">{t("নির্বাচন করুন")}</option>
             {settings.departments.map((d) => (
               <option key={d}>{d}</option>
             ))}
           </Select>
         </Field>
-        <Field label="অভিযোগের ধরন" htmlFor="category" required error={err("category")}>
+        <Field label={t("অভিযোগের ধরন")} htmlFor="category" required error={err("category")}>
           <Select id="category" value={category} onChange={(e) => onCategory(e.target.value)} {...aria("category")}>
-            <option value="">নির্বাচন করুন</option>
+            <option value="">{t("নির্বাচন করুন")}</option>
             {settings.categories.map((c) => (
               <option key={c}>{c}</option>
             ))}
@@ -235,40 +239,40 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
         </Field>
       </div>
 
-      <Field label="বিষয় (সংক্ষেপে)" htmlFor="subject" required error={err("subject")}>
+      <Field label={t("বিষয় (সংক্ষেপে)")} htmlFor="subject" required error={err("subject")}>
         <Input
           id="subject"
           value={subject}
           maxLength={120}
           onChange={(e) => setSubject(e.target.value)}
-          placeholder="যেমন: সড়কে বড় গর্ত, দুর্ঘটনার আশঙ্কা"
+          placeholder={t("যেমন: সড়কে বড় গর্ত, দুর্ঘটনার আশঙ্কা")}
           {...aria("subject")}
         />
       </Field>
 
       <Field
-        label="বিস্তারিত বিবরণ"
+        label={t("বিস্তারিত বিবরণ")}
         htmlFor="description"
         required
         error={err("description")}
-        hint={`${toBn(description.trim().length)} অক্ষর — কোথায়, কবে থেকে এবং কী সমস্যা তা উল্লেখ করুন`}
+        hint={tt("charCountHint", { n: n(description.trim().length) })}
       >
         <Textarea
           id="description"
           rows={5}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="আপনার অভিযোগের বিস্তারিত লিখুন..."
+          placeholder={t("আপনার অভিযোগের বিস্তারিত লিখুন...")}
           {...aria("description")}
         />
       </Field>
 
       {mode === "admin" && (
-        <Field label="অগ্রাধিকার" htmlFor="priority">
+        <Field label={t("অগ্রাধিকার")} htmlFor="priority">
           <Select id="priority" value={priority} onChange={(e) => setPriority(e.target.value as Priority)}>
             {PRIORITIES.map((p) => (
               <option key={p} value={p}>
-                {PRIORITY_META[p].label}
+                {t(PRIORITY_META[p].label)}
               </option>
             ))}
           </Select>
@@ -276,7 +280,7 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
       )}
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-small font-semibold text-ink">সংযুক্তি (ঐচ্ছিক)</span>
+        <span className="text-small font-semibold text-ink">{t("সংযুক্তি (ঐচ্ছিক)")}</span>
         <label
           onDragOver={(e) => {
             e.preventDefault();
@@ -290,8 +294,8 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
           )}
         >
           <Paperclip size={20} aria-hidden className="mb-1.5" />
-          ফাইল বাছাই করুন বা এখানে টেনে আনুন
-          <span className="mt-1 text-caption text-faint">JPG, PNG, PDF (সর্বোচ্চ ৫ এমবি, {toBn(MAX_ATTACHMENTS)}টি পর্যন্ত)</span>
+          {t("ফাইল বাছাই করুন বা এখানে টেনে আনুন")}
+          <span className="mt-1 text-caption text-faint">{tt("uploadHint", { n: n(MAX_ATTACHMENTS) })}</span>
           <input
             type="file"
             multiple
@@ -322,10 +326,10 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
                   <FileText size={18} aria-hidden className="text-muted" />
                 )}
                 <span className="truncate">{f.name}</span>
-                <span className="text-caption text-muted">{toBn(fmtBytes(f.size))}</span>
+                <span className="text-caption text-muted">{n(fmtBytes(f.size))}</span>
                 <button
                   type="button"
-                  aria-label={`${f.name} সরান`}
+                  aria-label={tt("removeFile", { name: f.name })}
                   onClick={() => setFiles((s) => s.filter((_, j) => j !== i))}
                   className="flex size-8 items-center justify-center rounded text-muted hover:bg-line hover:text-ink"
                 >
@@ -338,13 +342,13 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
       </div>
 
       <div className="my-1 h-px bg-line" />
-      <h2 className="text-body font-bold text-ink">{mode === "admin" ? "অভিযোগকারীর তথ্য" : "আপনার তথ্য"}</h2>
+      <h2 className="text-body font-bold text-ink">{mode === "admin" ? t("অভিযোগকারীর তথ্য") : t("আপনার তথ্য")}</h2>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="পূর্ণ নাম" htmlFor="name" required error={err("name")}>
-          <Input id="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="আপনার নাম লিখুন" {...aria("name")} />
+        <Field label={t("পূর্ণ নাম")} htmlFor="name" required error={err("name")}>
+          <Input id="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("আপনার নাম লিখুন")} {...aria("name")} />
         </Field>
-        <Field label="মোবাইল নম্বর" htmlFor="phone" required error={err("phone")}>
+        <Field label={t("মোবাইল নম্বর")} htmlFor="phone" required error={err("phone")}>
           <Input
             id="phone"
             type="tel"
@@ -352,13 +356,13 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
             autoComplete="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="০১XXX-XXXXXX"
+            placeholder={t("০১XXX-XXXXXX")}
             {...aria("phone")}
           />
         </Field>
       </div>
 
-      <Field label="ইমেইল (ঐচ্ছিক)" htmlFor="email" error={err("email")}>
+      <Field label={t("ইমেইল (ঐচ্ছিক)")} htmlFor="email" error={err("email")}>
         <Input
           id="email"
           type="email"
@@ -370,14 +374,14 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
         />
       </Field>
 
-      <Field label="ঠিকানা" htmlFor="address" required error={err("address")}>
+      <Field label={t("ঠিকানা")} htmlFor="address" required error={err("address")}>
         <Textarea
           id="address"
           rows={2}
           autoComplete="street-address"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          placeholder="বাসা/হোল্ডিং নম্বর, রোড, এলাকা, জেলা"
+          placeholder={t("বাসা/হোল্ডিং নম্বর, রোড, এলাকা, জেলা")}
           {...aria("address")}
         />
       </Field>
@@ -393,7 +397,7 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
               aria-invalid={err("confirmed") ? true : undefined}
               aria-describedby={err("confirmed") ? "confirmed-error" : undefined}
             />
-            আমি নিশ্চিত করছি যে উপরের তথ্যগুলো সঠিক ও সত্য
+            {t("আমি নিশ্চিত করছি যে উপরের তথ্যগুলো সঠিক ও সত্য")}
           </label>
           {err("confirmed") && (
             <p id="confirmed-error" role="alert" className="text-caption font-medium text-st-rejected">
@@ -404,11 +408,11 @@ export function ComplaintForm({ mode, actor, onCreated }: Props) {
       )}
 
       <Button type="submit" disabled={busy} className="py-3.5 text-lead font-bold">
-        {mode === "admin" ? "অভিযোগ যুক্ত করুন" : "অভিযোগ জমা দিন"}
+        {mode === "admin" ? t("অভিযোগ যুক্ত করুন") : t("অভিযোগ জমা দিন")}
       </Button>
       {Object.keys(errors).length > 0 && (
         <p role="alert" className="text-center text-small font-medium text-st-rejected">
-          {toBn(Object.keys(errors).length)}টি ঘর সংশোধন করুন
+          {tt("fixFieldsCount", { n: n(Object.keys(errors).length) })}
         </p>
       )}
     </form>

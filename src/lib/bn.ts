@@ -1,3 +1,5 @@
+import type { Lang } from "./i18n/context";
+
 const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
 
 export const BN_MONTHS = [
@@ -15,6 +17,21 @@ export const BN_MONTHS = [
   "ডিসেম্বর",
 ];
 
+export const EN_MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 /** Latin digits (or a number) → Bengali digits. */
 export function toBn(value: string | number): string {
   return String(value).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
@@ -23,6 +40,11 @@ export function toBn(value: string | number): string {
 /** Bengali digits → Latin digits (for parsing user input). */
 export function toEn(value: string): string {
   return value.replace(/[০-৯]/g, (d) => String(BN_DIGITS.indexOf(d)));
+}
+
+/** Number/digit-string, formatted for the given language (Bengali numerals, or plain Latin). */
+export function fmtNum(value: string | number, lang: Lang = "bn"): string {
+  return lang === "en" ? String(value) : toBn(value);
 }
 
 const DHAKA_OFFSET_MS = 6 * 3_600_000;
@@ -39,34 +61,41 @@ export function dhakaParts(input: string | Date | number) {
   };
 }
 
-/** "২২-০৯-২০২৬" — used in tables. */
-export function fmtDateShort(iso: string): string {
+/** "২২-০৯-২০২৬" (bn) or "22 Sep 2026" (en) — used in tables. */
+export function fmtDateShort(iso: string, lang: Lang = "bn"): string {
   const p = dhakaParts(iso);
+  if (lang === "en") return `${String(p.day).padStart(2, "0")} ${EN_MONTHS[p.month].slice(0, 3)} ${p.year}`;
   const dd = String(p.day).padStart(2, "0");
   const mm = String(p.month + 1).padStart(2, "0");
   return toBn(`${dd}-${mm}-${p.year}`);
 }
 
-/** "১৯ সেপ্টেম্বর, ২০২৬" — used in detail views. */
-export function fmtDateLong(iso: string): string {
+/** "১৯ সেপ্টেম্বর, ২০২৬" (bn) or "19 September, 2026" (en) — used in detail views. */
+export function fmtDateLong(iso: string, lang: Lang = "bn"): string {
   const p = dhakaParts(iso);
+  if (lang === "en") return `${p.day} ${EN_MONTHS[p.month]}, ${p.year}`;
   return `${toBn(p.day)} ${BN_MONTHS[p.month]}, ${toBn(p.year)}`;
 }
 
-/** "১৯ সেপ্টেম্বর, ২০২৬, দুপুর ০২:৩০" */
-export function fmtDateTime(iso: string): string {
+/** "১৯ সেপ্টেম্বর, ২০২৬, দুপুর ০২:৩০" (bn) or "19 September, 2026, 02:30 PM" (en) */
+export function fmtDateTime(iso: string, lang: Lang = "bn"): string {
   const { hour: h, minute } = dhakaParts(iso);
+  const mm = String(minute).padStart(2, "0");
+  if (lang === "en") {
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    const period = h < 12 ? "AM" : "PM";
+    return `${fmtDateLong(iso, "en")}, ${String(h12).padStart(2, "0")}:${mm} ${period}`;
+  }
   const period = h < 4 ? "রাত" : h < 12 ? "সকাল" : h < 16 ? "দুপুর" : h < 18 ? "বিকাল" : h < 20 ? "সন্ধ্যা" : "রাত";
   const h12 = h % 12 === 0 ? 12 : h % 12;
-  const mm = String(minute).padStart(2, "0");
-  return `${fmtDateLong(iso)}, ${period} ${toBn(String(h12).padStart(2, "0"))}:${toBn(mm)}`;
+  return `${fmtDateLong(iso, "bn")}, ${period} ${toBn(String(h12).padStart(2, "0"))}:${toBn(mm)}`;
 }
 
-/** 01712345678 → ০১৭১২-৩৪৫৬৭৮ (matches the design). */
-export function fmtPhone(phone: string): string {
+/** 01712345678 → ০১৭১২-৩৪৫৬৭৮ (bn) or 01712-345678 (en). */
+export function fmtPhone(phone: string, lang: Lang = "bn"): string {
   const p = toEn(phone).replace(/\D/g, "");
-  if (p.length === 11) return toBn(`${p.slice(0, 5)}-${p.slice(5)}`);
-  return toBn(phone);
+  const formatted = p.length === 11 ? `${p.slice(0, 5)}-${p.slice(5)}` : phone;
+  return lang === "en" ? formatted : toBn(formatted);
 }
 
 /** Accepts Bengali/Latin digits, spaces, dashes, +88 prefix. Returns 01XXXXXXXXX or null. */
@@ -77,8 +106,8 @@ export function normalizePhone(input: string): string | null {
   return /^01[3-9]\d{8}$/.test(p) ? p : null;
 }
 
-export function fmtNumber(n: number, digits = 0): string {
-  return toBn(n.toFixed(digits));
+export function fmtNumber(n: number, digits = 0, lang: Lang = "bn"): string {
+  return fmtNum(n.toFixed(digits), lang);
 }
 
 /** Days between two dates, floor. */

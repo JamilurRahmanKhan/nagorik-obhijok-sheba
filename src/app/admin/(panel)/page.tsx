@@ -5,10 +5,10 @@ import { useMemo, useState } from "react";
 import { ComplaintTable } from "@/components/admin/complaint-table";
 import { PageHeader } from "@/components/admin/page-header";
 import { LinkButton } from "@/components/ui/button";
-import { toBn } from "@/lib/bn";
 import { PROGRESS_STATUSES } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { useDb } from "@/lib/store";
+import { useT } from "@/lib/i18n";
 import type { Complaint } from "@/lib/types";
 
 type Filter = "all" | "new" | "progress" | "resolved";
@@ -24,6 +24,7 @@ const matchers: Record<Filter, (c: Complaint) => boolean> = {
 
 export default function DashboardPage() {
   const { complaints, loading } = useDb();
+  const { t, tt, n } = useT();
   const hydrated = !loading;
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -57,9 +58,9 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="ড্যাশবোর্ড" subtitle="সকল নাগরিক অভিযোগের সার-সংক্ষেপ ও ট্র্যাকিং" />
+      <PageHeader title={t("ড্যাশবোর্ড")} subtitle={t("সকল নাগরিক অভিযোগের সার-সংক্ষেপ ও ট্র্যাকিং")} />
 
-      <section aria-label="অভিযোগের সারাংশ" className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+      <section aria-label={t("অভিযোগের সারাংশ")} className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {cards.map((c) => {
           const active = filter === c.key;
           return (
@@ -73,10 +74,8 @@ export default function DashboardPage() {
                 active ? "border-primary bg-primary-tint" : "border-line bg-surface hover:border-line-strong",
               )}
             >
-              <span className="text-small font-semibold text-muted">{c.label}</span>
-              <span className={cn("text-stat font-bold leading-tight", c.tone)}>
-                {hydrated ? toBn(counts[c.key]) : "—"}
-              </span>
+              <span className="text-small font-semibold text-muted">{t(c.label)}</span>
+              <span className={cn("text-stat font-bold leading-tight", c.tone)}>{hydrated ? n(counts[c.key]) : "—"}</span>
             </button>
           );
         })}
@@ -84,9 +83,9 @@ export default function DashboardPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-h3 font-bold text-ink">
-          {filter === "all" ? "সাম্প্রতিক অভিযোগ" : `অভিযোগের তালিকা — ${cards.find((c) => c.key === filter)?.label}`}
+          {filter === "all" ? t("সাম্প্রতিক অভিযোগ") : tt("filteredListHeading", { label: t(cards.find((c) => c.key === filter)?.label ?? "") })}
         </h2>
-        <LinkButton href="/admin/complaints/new">+ নতুন অভিযোগ যুক্ত করুন</LinkButton>
+        <LinkButton href="/admin/complaints/new">+ {t("নতুন অভিযোগ যুক্ত করুন")}</LinkButton>
       </div>
 
       <div className="overflow-hidden rounded-card border border-line bg-surface">
@@ -94,7 +93,7 @@ export default function DashboardPage() {
         {hydrated && counts[filter] > RECENT && (
           <div className="border-t border-line px-4 py-3 text-center">
             <Link href={`/admin/complaints${statusParam}`} className="inline-flex min-h-11 items-center text-small font-semibold">
-              সবগুলো ({toBn(counts[filter])}টি) দেখুন →
+              {tt("viewAllCount", { n: n(counts[filter]) })}
             </Link>
           </div>
         )}

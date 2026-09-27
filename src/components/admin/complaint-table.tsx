@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { fmtDateShort } from "@/lib/bn";
 import type { Complaint } from "@/lib/types";
 import { StatusBadge } from "@/components/ui/badge";
 import { EmptyState, Skeleton } from "@/components/ui/misc";
+import { useT } from "@/lib/i18n";
 
 const th = "px-4 py-3.5 text-left text-caption font-semibold text-muted";
 
@@ -19,31 +19,33 @@ export function ComplaintTable({
   emptyTitle?: string;
   emptyHint?: string;
 }) {
+  const { t, tt, dateShort } = useT();
+
   if (loading) {
     return (
-      <div className="flex flex-col gap-3 p-4" role="status" aria-label="লোড হচ্ছে">
+      <div className="flex flex-col gap-3 p-4" role="status" aria-label={t("লোড হচ্ছে")}>
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} className="h-12" />
         ))}
       </div>
     );
   }
-  if (items.length === 0) return <EmptyState title={emptyTitle} hint={emptyHint} />;
+  if (items.length === 0) return <EmptyState title={t(emptyTitle)} hint={emptyHint ? t(emptyHint) : undefined} />;
 
   return (
     <>
       {/* ≥ md: table */}
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full border-collapse text-body">
-          <caption className="sr-only">অভিযোগের তালিকা</caption>
+          <caption className="sr-only">{t("অভিযোগের তালিকা")}</caption>
           <thead>
             <tr className="bg-canvas">
-              <th scope="col" className={th}>আইডি</th>
-              <th scope="col" className={th}>বিষয় ও বিভাগ</th>
-              <th scope="col" className={th}>অভিযোগকারী</th>
-              <th scope="col" className={th}>তারিখ</th>
-              <th scope="col" className={th}>স্ট্যাটাস</th>
-              <th scope="col" className={th}>অ্যাকশন</th>
+              <th scope="col" className={th}>{t("আইডি")}</th>
+              <th scope="col" className={th}>{t("বিষয় ও বিভাগ")}</th>
+              <th scope="col" className={th}>{t("অভিযোগকারী")}</th>
+              <th scope="col" className={th}>{t("তারিখ")}</th>
+              <th scope="col" className={th}>{t("স্ট্যাটাস")}</th>
+              <th scope="col" className={th}>{t("অ্যাকশন")}</th>
             </tr>
           </thead>
           <tbody>
@@ -55,7 +57,7 @@ export function ComplaintTable({
                   <div className="mt-0.5 text-caption text-muted">{c.category}</div>
                 </td>
                 <td className="px-4 py-3.5 text-ink">{c.citizen.name}</td>
-                <td className="whitespace-nowrap px-4 py-3.5 text-muted">{fmtDateShort(c.createdAt)}</td>
+                <td className="whitespace-nowrap px-4 py-3.5 text-muted">{dateShort(c.createdAt)}</td>
                 <td className="px-4 py-3.5">
                   <StatusBadge status={c.status} />
                 </td>
@@ -63,9 +65,9 @@ export function ComplaintTable({
                   <Link
                     href={`/admin/complaints/${c.id}`}
                     className="inline-flex min-h-11 items-center text-small font-semibold"
-                    aria-label={`${c.id} বিস্তারিত দেখুন`}
+                    aria-label={tt("viewDetailFor", { id: c.id })}
                   >
-                    বিস্তারিত দেখুন →
+                    {t("বিস্তারিত দেখুন")} →
                   </Link>
                 </td>
               </tr>
@@ -85,7 +87,7 @@ export function ComplaintTable({
               </div>
               <p className="mt-1.5 text-body font-medium text-ink">{c.subject}</p>
               <p className="mt-0.5 text-caption text-muted">
-                {c.category} · {c.citizen.name} · {fmtDateShort(c.createdAt)}
+                {c.category} · {c.citizen.name} · {dateShort(c.createdAt)}
               </p>
             </Link>
           </li>

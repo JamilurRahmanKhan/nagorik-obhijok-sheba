@@ -1,7 +1,10 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { LinkButton } from "@/components/ui/button";
 import { QuickTrack } from "@/components/public/quick-track";
+import { useT } from "@/lib/i18n";
 
 const steps = [
   { title: "অভিযোগ জমা দিন", body: "দপ্তর ও ধরন বেছে সমস্যাটি লিখুন। ছবি বা পিডিএফ থাকলে যুক্ত করুন। জমা দিলেই একটি ট্র্যাকিং আইডি পাবেন।" },
@@ -28,34 +31,35 @@ const faqs = [
 ];
 
 export default function HomePage() {
+  const { t, n } = useT();
   return (
     <>
       <section className="border-b border-line">
         <div className="mx-auto grid w-full max-w-[1120px] items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:py-20">
           <div>
-            <p className="mb-3 text-small font-semibold text-primary">স্থানীয় সরকার বিভাগ · নাগরিক অভিযোগ সেল</p>
+            <p className="mb-3 text-small font-semibold text-primary">{t("স্থানীয় সরকার বিভাগ · নাগরিক অভিযোগ সেল")}</p>
             <h1 className="text-[clamp(28px,4.2vw,44px)] font-bold leading-[1.35] text-ink">
-              আপনার অভিযোগ জানান।
+              {t("আপনার অভিযোগ জানান।")}
               <br />
-              সমাধানের প্রতিটি ধাপ নিজে দেখুন।
+              {t("সমাধানের প্রতিটি ধাপ নিজে দেখুন।")}
             </h1>
             <p className="mt-4 max-w-xl text-lead leading-relaxed text-ink-2">
-              সরকারি সেবা নিয়ে সমস্যায় পড়লে অনলাইনে অভিযোগ জমা দিন। একটি ট্র্যাকিং আইডির মাধ্যমে দেখে নিন কে দায়িত্বে আছেন এবং কাজ কোন পর্যায়ে।
+              {t("সরকারি সেবা নিয়ে সমস্যায় পড়লে অনলাইনে অভিযোগ জমা দিন। একটি ট্র্যাকিং আইডির মাধ্যমে দেখে নিন কে দায়িত্বে আছেন এবং কাজ কোন পর্যায়ে।")}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <LinkButton href="/submit" className="py-3 text-lead">
-                অভিযোগ দাখিল করুন <ArrowRight size={18} aria-hidden />
+                {t("অভিযোগ দাখিল করুন")} <ArrowRight size={18} aria-hidden />
               </LinkButton>
               <LinkButton href="/track" variant="outline" className="py-3 text-lead">
-                অবস্থা জানুন
+                {t("অবস্থা জানুন")}
               </LinkButton>
             </div>
           </div>
 
           <div className="rounded-panel bg-side p-6 sm:p-8">
-            <h2 className="text-brand font-bold text-white">অভিযোগের অবস্থা জানুন</h2>
+            <h2 className="text-brand font-bold text-white">{t("অভিযোগের অবস্থা জানুন")}</h2>
             <p className="mb-5 mt-1 text-small leading-relaxed text-side-muted">
-              জমা দেওয়ার সময় পাওয়া ট্র্যাকিং আইডি লিখুন। পরের ধাপে আপনার মোবাইল নম্বর যাচাই করা হবে।
+              {t("জমা দেওয়ার সময় পাওয়া ট্র্যাকিং আইডি লিখুন। পরের ধাপে আপনার মোবাইল নম্বর যাচাই করা হবে।")}
             </p>
             <QuickTrack />
           </div>
@@ -65,18 +69,18 @@ export default function HomePage() {
       <section className="mx-auto w-full max-w-[1120px] px-4 py-14 sm:px-6">
         <div className="grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
           <div>
-            <h2 className="text-h2 font-bold text-ink">কীভাবে কাজ করে</h2>
-            <p className="mt-2 max-w-xs text-body text-muted">চারটি স্পষ্ট ধাপ — প্রতিটি ধাপ আপনি ট্র্যাকিং পেজে দেখতে পাবেন।</p>
+            <h2 className="text-h2 font-bold text-ink">{t("কীভাবে কাজ করে")}</h2>
+            <p className="mt-2 max-w-xs text-body text-muted">{t("চারটি স্পষ্ট ধাপ — প্রতিটি ধাপ আপনি ট্র্যাকিং পেজে দেখতে পাবেন।")}</p>
           </div>
           <ol className="flex flex-col">
             {steps.map((s, i) => (
               <li key={s.title} className="flex gap-4 border-t border-line py-5 first:border-t-0 first:pt-0">
                 <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-tint text-body font-bold text-primary">
-                  {"১২৩৪"[i]}
+                  {n(i + 1)}
                 </span>
                 <div>
-                  <h3 className="text-h3 font-bold text-ink">{s.title}</h3>
-                  <p className="mt-1 text-body leading-relaxed text-ink-2">{s.body}</p>
+                  <h3 className="text-h3 font-bold text-ink">{t(s.title)}</h3>
+                  <p className="mt-1 text-body leading-relaxed text-ink-2">{t(s.body)}</p>
                 </div>
               </li>
             ))}
@@ -86,33 +90,33 @@ export default function HomePage() {
 
       <section className="border-y border-line bg-surface">
         <div className="mx-auto w-full max-w-[1120px] px-4 py-14 sm:px-6">
-          <h2 className="text-h2 font-bold text-ink">কোন বিষয়ে অভিযোগ করবেন</h2>
+          <h2 className="text-h2 font-bold text-ink">{t("কোন বিষয়ে অভিযোগ করবেন")}</h2>
           <dl className="mt-6 grid gap-x-12 md:grid-cols-2">
-            {topics.map(([t, d]) => (
-              <div key={t} className="border-t border-line py-4">
-                <dt className="text-h3 font-bold text-ink">{t}</dt>
-                <dd className="mt-0.5 text-body text-muted">{d}</dd>
+            {topics.map(([topic, desc]) => (
+              <div key={topic} className="border-t border-line py-4">
+                <dt className="text-h3 font-bold text-ink">{t(topic)}</dt>
+                <dd className="mt-0.5 text-body text-muted">{t(desc)}</dd>
               </div>
             ))}
           </dl>
           <Link href="/submit" className="mt-6 inline-flex min-h-11 items-center gap-1.5 font-semibold">
-            অভিযোগ দাখিল করুন <ArrowRight size={16} aria-hidden />
+            {t("অভিযোগ দাখিল করুন")} <ArrowRight size={16} aria-hidden />
           </Link>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-[820px] px-4 py-14 sm:px-6">
-        <h2 className="mb-5 text-h2 font-bold text-ink">সাধারণ জিজ্ঞাসা</h2>
+        <h2 className="mb-5 text-h2 font-bold text-ink">{t("সাধারণ জিজ্ঞাসা")}</h2>
         <div className="flex flex-col gap-3">
           {faqs.map((f) => (
             <details key={f.q} className="group rounded-card border border-line bg-surface">
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 text-h3 font-semibold text-ink [&::-webkit-details-marker]:hidden">
-                {f.q}
+                {t(f.q)}
                 <span aria-hidden className="text-h2 font-normal text-primary transition-transform duration-150 group-open:rotate-45">
                   +
                 </span>
               </summary>
-              <p className="px-5 pb-4 text-body leading-relaxed text-ink-2">{f.a}</p>
+              <p className="px-5 pb-4 text-body leading-relaxed text-ink-2">{t(f.a)}</p>
             </details>
           ))}
         </div>

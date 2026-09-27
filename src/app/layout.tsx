@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { SkipLink } from "@/components/skip-link";
 import { ToastProvider } from "@/components/ui/toast";
+import { LanguageProvider } from "@/lib/i18n";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,13 +23,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="bn" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-control focus:bg-primary focus:px-4 focus:py-2 focus:text-on-primary"
-        >
-          মূল অংশে যান
-        </a>
-        <ToastProvider>{children}</ToastProvider>
+        <LanguageProvider>
+          <SkipLink />
+          <ToastProvider>{children}</ToastProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

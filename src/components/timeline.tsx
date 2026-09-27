@@ -1,5 +1,7 @@
+"use client";
+
 import { Check, X } from "lucide-react";
-import { fmtDateLong } from "@/lib/bn";
+import { useT } from "@/lib/i18n";
 import { STATUS_FLOW, STEP_LABEL } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import type { Complaint, Status } from "@/lib/types";
@@ -34,6 +36,7 @@ function buildSteps(c: Complaint): Step[] {
 }
 
 export function Timeline({ complaint }: { complaint: Complaint }) {
+  const { t, dateLong } = useT();
   const steps = buildSteps(complaint);
   return (
     <ol className="flex flex-col">
@@ -65,12 +68,12 @@ export function Timeline({ complaint }: { complaint: Complaint }) {
                   rejected ? "text-st-rejected" : done || current ? "text-ink" : "text-faint",
                 )}
               >
-                {s.label}
-                {done && <span className="sr-only"> (সম্পন্ন)</span>}
-                {current && <span className="sr-only"> (বর্তমান ধাপ)</span>}
+                {t(s.label)}
+                {done && <span className="sr-only"> ({t("সম্পন্ন")})</span>}
+                {current && <span className="sr-only"> ({t("বর্তমান ধাপ")})</span>}
               </div>
               <div className="mt-0.5 text-caption text-faint">
-                {s.date ? fmtDateLong(s.date) : s.state === "pending" ? "অপেক্ষমাণ" : ""}
+                {s.date ? dateLong(s.date) : s.state === "pending" ? t("অপেক্ষমাণ") : ""}
               </div>
             </div>
           </li>

@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n";
 
 /** Native <dialog> → focus trap, Esc to close and inert background for free. */
 export function Modal({
@@ -18,6 +19,7 @@ export function Modal({
   children: ReactNode;
   className?: string;
 }) {
+  const { t } = useT();
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export function Modal({
             <button
               type="button"
               onClick={onClose}
-              aria-label="বন্ধ করুন"
+              aria-label={t("বন্ধ করুন")}
               className="flex size-11 items-center justify-center rounded-control text-muted hover:bg-canvas hover:text-ink"
             >
               <X size={18} />

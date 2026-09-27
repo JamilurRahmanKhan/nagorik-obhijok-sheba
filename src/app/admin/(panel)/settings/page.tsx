@@ -10,10 +10,10 @@ import { Skeleton } from "@/components/ui/misc";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import { useSession } from "@/lib/auth";
-import { toBn } from "@/lib/bn";
 import { PRIORITIES, PRIORITY_META } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { resetDemoData, updateSettings, useDb } from "@/lib/store";
+import { useT } from "@/lib/i18n";
 import type { Complaint, Officer, Priority, Settings } from "@/lib/types";
 
 function ListEditor({
@@ -31,13 +31,14 @@ function ListEditor({
   placeholder: string;
   error?: string;
 }) {
+  const { t, tt } = useT();
   const [value, setValue] = useState("");
   const [msg, setMsg] = useState("");
 
   const add = () => {
     const v = value.trim();
     if (!v) return;
-    if (items.some((i) => i === v)) return setMsg("এটি ইতোমধ্যে তালিকায় আছে");
+    if (items.some((i) => i === v)) return setMsg(t("এটি ইতোমধ্যে তালিকায় আছে"));
     onChange([...items, v]);
     setValue("");
     setMsg("");
@@ -56,7 +57,7 @@ function ListEditor({
               type="button"
               onClick={() => items.length > 1 && onChange(items.filter((x) => x !== it))}
               disabled={items.length <= 1}
-              aria-label={`${it} সরান`}
+              aria-label={tt("removeItem", { name: it })}
               className="flex size-8 items-center justify-center rounded-full text-muted hover:bg-line hover:text-st-rejected disabled:opacity-40"
             >
               <X size={15} />
@@ -67,7 +68,7 @@ function ListEditor({
       {/* not a <form>: this editor lives inside the settings form */}
       <div className="flex gap-2">
         <label htmlFor={id} className="sr-only">
-          {label} যুক্ত করুন
+          {tt("addLabel", { label })}
         </label>
         <input
           id={id}
@@ -82,8 +83,8 @@ function ListEditor({
           placeholder={placeholder}
           className={cn(controlClass, "max-w-sm")}
         />
-        <Button variant="outline" onClick={add} aria-label={`${label} যুক্ত করুন`}>
-          <Plus size={16} /> যুক্ত
+        <Button variant="outline" onClick={add} aria-label={tt("addLabel", { label })}>
+          <Plus size={16} /> {t("যুক্ত")}
         </Button>
       </div>
       {(msg || error) && (
@@ -129,6 +130,7 @@ function SettingsForm({
 }) {
   const toast = useToast();
   const session = useSession();
+  const { t, tt, n } = useT();
   const [s, setS] = useState<Settings>(initial);
   const [resetOpen, setResetOpen] = useState(false);
   const [error, setError] = useState("");
@@ -147,7 +149,7 @@ function SettingsForm({
     setBusy(true);
     try {
       await updateSettings({ ...s, orgName: s.orgName.trim(), orgSub: s.orgSub.trim() });
-      toast("সেটিংস সংরক্ষিত হয়েছে");
+      toast(t("সেটিংস সংরক্ষিত হয়েছে"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "সংরক্ষণ করা যায়নি");
     } finally {
@@ -167,7 +169,7 @@ function SettingsForm({
   };
 
   const tplField = (key: keyof Settings["smsTemplates"], label: string) => (
-    <Field label={label} htmlFor={`tpl-${key}`}>
+    <Field label={t(label)} htmlFor={`tpl-${key}`}>
       <Textarea
         id={`tpl-${key}`}
         rows={3}
@@ -180,30 +182,30 @@ function SettingsForm({
   return (
     <form onSubmit={save} noValidate className="flex max-w-[860px] flex-col gap-5">
       <Card className="flex flex-col gap-4">
-        <CardTitle className="mb-0">প্রতিষ্ঠানের তথ্য</CardTitle>
+        <CardTitle className="mb-0">{t("প্রতিষ্ঠানের তথ্য")}</CardTitle>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="সেলের নাম" htmlFor="orgName" required>
+          <Field label={t("সেলের নাম")} htmlFor="orgName" required>
             <Input id="orgName" value={s.orgName} onChange={(e) => setS({ ...s, orgName: e.target.value })} />
           </Field>
-          <Field label="মন্ত্রণালয়/বিভাগ" htmlFor="orgSub">
+          <Field label={t("মন্ত্রণালয়/বিভাগ")} htmlFor="orgSub">
             <Input id="orgSub" value={s.orgSub} onChange={(e) => setS({ ...s, orgSub: e.target.value })} />
           </Field>
         </div>
         {session && (
           <p className="rounded-control bg-canvas px-3 py-2 text-small text-muted">
-            লগইন করা অ্যাকাউন্ট: <strong className="text-ink">{session.name}</strong> ({session.role}) · {session.email}
+            {t("লগইন করা অ্যাকাউন্ট")}: <strong className="text-ink">{session.name}</strong> ({t(session.role)}) · {session.email}
           </p>
         )}
       </Card>
 
       <Card className="flex flex-col gap-4">
         <div>
-          <CardTitle className="mb-1">সমাধানের নির্ধারিত সময়সীমা</CardTitle>
-          <p className="text-small text-muted">এই সময়ের মধ্যে সমাধান না হলে অভিযোগ “অতিক্রান্ত” হিসেবে চিহ্নিত হবে।</p>
+          <CardTitle className="mb-1">{t("সমাধানের নির্ধারিত সময়সীমা")}</CardTitle>
+          <p className="text-small text-muted">{t("এই সময়ের মধ্যে সমাধান না হলে অভিযোগ “অতিক্রান্ত” হিসেবে চিহ্নিত হবে।")}</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {PRIORITIES.map((p: Priority) => (
-            <Field key={p} label={`${PRIORITY_META[p].label} (দিন)`} htmlFor={`sla-${p}`}>
+            <Field key={p} label={tt("slaFieldLabel", { label: t(PRIORITY_META[p].label) })} htmlFor={`sla-${p}`}>
               <Input
                 id={`sla-${p}`}
                 type="number"
@@ -220,24 +222,25 @@ function SettingsForm({
 
       <Card className="flex flex-col gap-6">
         <div>
-          <CardTitle className="mb-1">বিভাগ ও দপ্তর</CardTitle>
-          <p className="text-small text-muted">নাগরিক ফর্মে যে তালিকা দেখানো হয়। মুছলেও পুরনো অভিযোগ অপরিবর্তিত থাকবে।</p>
+          <CardTitle className="mb-1">{t("বিভাগ ও দপ্তর")}</CardTitle>
+          <p className="text-small text-muted">{t("নাগরিক ফর্মে যে তালিকা দেখানো হয়। মুছলেও পুরনো অভিযোগ অপরিবর্তিত থাকবে।")}</p>
         </div>
-        <ListEditor id="cat" label="অভিযোগের বিভাগ" items={s.categories} onChange={(categories) => setS({ ...s, categories })} placeholder="নতুন বিভাগের নাম" />
-        <ListEditor id="dep" label="দপ্তর" items={s.departments} onChange={(departments) => setS({ ...s, departments })} placeholder="নতুন দপ্তরের নাম" />
+        <ListEditor id="cat" label={t("অভিযোগের বিভাগ")} items={s.categories} onChange={(categories) => setS({ ...s, categories })} placeholder={t("নতুন বিভাগের নাম")} />
+        <ListEditor id="dep" label={t("দপ্তর")} items={s.departments} onChange={(departments) => setS({ ...s, departments })} placeholder={t("নতুন দপ্তরের নাম")} />
       </Card>
 
       <Card className="flex flex-col gap-4">
         <div>
-          <CardTitle className="mb-1">SMS বিজ্ঞপ্তি</CardTitle>
+          <CardTitle className="mb-1">{t("SMS বিজ্ঞপ্তি")}</CardTitle>
           <p className="text-small text-muted">
-            বার্তায় <code className="rounded bg-canvas px-1">{"{id}"}</code> ও <code className="rounded bg-canvas px-1">{"{officer}"}</code> ব্যবহার করা যায়। ডেমো মোডে বার্তাগুলো কেবল অভিযোগের কার্যবিবরণীতে সংরক্ষিত হয় — বাস্তব গেটওয়ে সংযুক্ত নেই।
+            {t("বার্তায়")} <code className="rounded bg-canvas px-1">{"{id}"}</code> {t("ও")} <code className="rounded bg-canvas px-1">{"{officer}"}</code>{" "}
+            {t("ব্যবহার করা যায়। ডেমো মোডে বার্তাগুলো কেবল অভিযোগের কার্যবিবরণীতে সংরক্ষিত হয় — বাস্তব গেটওয়ে সংযুক্ত নেই।")}
           </p>
         </div>
-        <Toggle label="অভিযোগ জমার সময় নাগরিককে SMS" checked={s.smsOnSubmit} onChange={(v) => setS({ ...s, smsOnSubmit: v })} />
+        <Toggle label={t("অভিযোগ জমার সময় নাগরিককে SMS")} checked={s.smsOnSubmit} onChange={(v) => setS({ ...s, smsOnSubmit: v })} />
         <Toggle
-          label="কর্মকর্তা নির্ধারণ ও সমাধানের সময় SMS"
-          hint="স্ট্যাটাস পরিবর্তনে স্বয়ংক্রিয়ভাবে পাঠানো হবে"
+          label={t("কর্মকর্তা নির্ধারণ ও সমাধানের সময় SMS")}
+          hint={t("স্ট্যাটাস পরিবর্তনে স্বয়ংক্রিয়ভাবে পাঠানো হবে")}
           checked={s.smsOnStatusChange}
           onChange={(v) => setS({ ...s, smsOnStatusChange: v })}
         />
@@ -247,44 +250,42 @@ function SettingsForm({
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <CardTitle className="mb-0">ডেটা</CardTitle>
-        <p className="text-small text-muted">সব তথ্য ডেটাবেসে নিরাপদে সংরক্ষিত থাকে। প্রয়োজনে ব্যাকআপ নিন বা ডেমো ডেটা ফিরিয়ে আনুন।</p>
+        <CardTitle className="mb-0">{t("ডেটা")}</CardTitle>
+        <p className="text-small text-muted">{t("সব তথ্য ডেটাবেসে নিরাপদে সংরক্ষিত থাকে। প্রয়োজনে ব্যাকআপ নিন বা ডেমো ডেটা ফিরিয়ে আনুন।")}</p>
         <div className="flex flex-wrap gap-2.5">
           <Button variant="outline" onClick={backup}>
-            <Download size={16} /> ব্যাকআপ (JSON)
+            <Download size={16} /> {t("ব্যাকআপ (JSON)")}
           </Button>
           <Button variant="danger" onClick={() => setResetOpen(true)}>
-            <RotateCcw size={16} /> ডেমো ডেটা পুনরুদ্ধার
+            <RotateCcw size={16} /> {t("ডেমো ডেটা পুনরুদ্ধার")}
           </Button>
         </div>
       </Card>
 
       <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-3 border-t border-line bg-canvas/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-card sm:border sm:bg-surface">
         <Button type="submit" disabled={!dirty || busy}>
-          সংরক্ষণ করুন
+          {t("সংরক্ষণ করুন")}
         </Button>
         {dirty && (
           <Button variant="ghost" onClick={() => setS(initial)} disabled={busy}>
-            পরিবর্তন বাতিল
+            {t("পরিবর্তন বাতিল")}
           </Button>
         )}
         <span className="text-small text-muted" aria-live="polite">
-          {dirty ? "সংরক্ষণ না করা পরিবর্তন আছে" : "সব পরিবর্তন সংরক্ষিত"}
+          {t(dirty ? "সংরক্ষণ না করা পরিবর্তন আছে" : "সব পরিবর্তন সংরক্ষিত")}
         </span>
         {error && (
           <span role="alert" className="text-small font-medium text-st-rejected">
-            {error}
+            {t(error)}
           </span>
         )}
       </div>
 
-      <Modal open={resetOpen} onClose={() => setResetOpen(false)} title="ডেমো ডেটা পুনরুদ্ধার করবেন?">
-        <p className="text-body text-ink-2">
-          বর্তমান সব অভিযোগ, কর্মকর্তা ও সেটিংস মুছে গিয়ে প্রাথমিক ডেমো ডেটা ফিরে আসবে ({toBn(complaints.length)}টি অভিযোগ বর্তমানে আছে)। এটি ফেরানো যাবে না — প্রয়োজনে আগে ব্যাকআপ নিন।
-        </p>
+      <Modal open={resetOpen} onClose={() => setResetOpen(false)} title={t("ডেমো ডেটা পুনরুদ্ধার করবেন?")}>
+        <p className="text-body text-ink-2">{tt("resetConfirmBody", { n: n(complaints.length) })}</p>
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setResetOpen(false)} disabled={resetBusy}>
-            বাতিল
+            {t("বাতিল করুন")}
           </Button>
           <Button
             variant="danger"
@@ -293,16 +294,16 @@ function SettingsForm({
               setResetBusy(true);
               try {
                 await resetDemoData();
-                toast("ডেমো ডেটা পুনরুদ্ধার হয়েছে");
+                toast(t("ডেমো ডেটা পুনরুদ্ধার হয়েছে"));
               } catch (err) {
-                toast(err instanceof Error ? err.message : "পুনরুদ্ধার করা যায়নি", "error");
+                toast(t(err instanceof Error ? err.message : "পুনরুদ্ধার করা যায়নি"), "error");
               } finally {
                 setResetBusy(false);
                 setResetOpen(false);
               }
             }}
           >
-            হ্যাঁ, পুনরুদ্ধার করুন
+            {t("হ্যাঁ, পুনরুদ্ধার করুন")}
           </Button>
         </div>
       </Modal>
@@ -312,14 +313,15 @@ function SettingsForm({
 
 export default function SettingsPage() {
   const { settings, complaints, officers, loading } = useDb();
+  const { t } = useT();
   return (
     <>
-      <PageHeader title="সেটিংস" subtitle="বিভাগ, সময়সীমা ও বিজ্ঞপ্তির নিয়ম পরিচালনা করুন" />
+      <PageHeader title={t("সেটিংস")} subtitle={t("বিভাগ, সময়সীমা ও বিজ্ঞপ্তির নিয়ম পরিচালনা করুন")} />
       {!loading ? (
         // re-key when settings are replaced externally (e.g. demo reset)
         <SettingsForm key={JSON.stringify(settings).length} initial={settings} complaints={complaints} officers={officers} />
       ) : (
-        <div className="flex max-w-[860px] flex-col gap-5" role="status" aria-label="লোড হচ্ছে">
+        <div className="flex max-w-[860px] flex-col gap-5" role="status" aria-label={t("লোড হচ্ছে")}>
           <Skeleton className="h-40" />
           <Skeleton className="h-40" />
         </div>

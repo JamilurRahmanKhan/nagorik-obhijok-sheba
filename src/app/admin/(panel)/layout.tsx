@@ -8,12 +8,14 @@ import { NotificationBell } from "@/components/admin/notification-bell";
 import { Sidebar } from "@/components/admin/sidebar";
 import { useSession } from "@/lib/auth";
 import { useDb } from "@/lib/store";
+import { useT } from "@/lib/i18n";
 
 export default function PanelLayout({ children }: { children: ReactNode }) {
   const session = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const { settings } = useDb();
+  const { t } = useT();
   const [drawer, setDrawer] = useState(false);
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
   if (!session) {
     return (
       <div className="flex min-h-dvh items-center justify-center text-body text-muted" role="status">
-        লোড হচ্ছে…
+        {t("লোড হচ্ছে…")}
       </div>
     );
   }
@@ -40,7 +42,7 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
         <div className="no-print fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            aria-label="মেনু বন্ধ করুন"
+            aria-label={t("মেনু বন্ধ করুন")}
             className="absolute inset-0 animate-fade-in bg-ink/50"
             onClick={() => setDrawer(false)}
           />
@@ -57,7 +59,7 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
         <div className="no-print sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-surface px-4 lg:hidden">
           <button
             type="button"
-            aria-label="মেনু খুলুন"
+            aria-label={t("মেনু খুলুন")}
             onClick={() => setDrawer(true)}
             className="-ml-2 flex size-11 items-center justify-center rounded-control text-ink hover:bg-canvas"
           >

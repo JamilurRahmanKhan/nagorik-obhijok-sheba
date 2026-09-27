@@ -3,11 +3,12 @@
 import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fmtDateShort, toBn } from "@/lib/bn";
 import { useDb } from "@/lib/store";
+import { useT } from "@/lib/i18n";
 
 export function NotificationBell() {
   const { complaints } = useDb();
+  const { t, tt, n, dateShort } = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -37,7 +38,7 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         type="button"
-        aria-label={fresh.length ? `বিজ্ঞপ্তি, ${toBn(fresh.length)}টি নতুন অভিযোগ` : "বিজ্ঞপ্তি"}
+        aria-label={fresh.length ? tt("newComplaintsNotification", { n: n(fresh.length) }) : t("বিজ্ঞপ্তি")}
         aria-expanded={open}
         aria-haspopup="true"
         onClick={() => setOpen((o) => !o)}
@@ -52,10 +53,10 @@ export function NotificationBell() {
       {open && (
         <div className="absolute right-0 z-40 mt-2 w-[min(340px,calc(100vw-32px))] animate-pop rounded-card border border-line bg-surface">
           <div className="border-b border-line px-4 py-3 text-small font-bold text-ink">
-            নতুন অভিযোগ ({toBn(fresh.length)})
+            {tt("newComplaintsHeading", { n: n(fresh.length) })}
           </div>
           {fresh.length === 0 ? (
-            <p className="px-4 py-6 text-center text-body text-muted">কোনো নতুন অভিযোগ নেই</p>
+            <p className="px-4 py-6 text-center text-body text-muted">{t("কোনো নতুন অভিযোগ নেই")}</p>
           ) : (
             <ul className="max-h-80 overflow-y-auto">
               {fresh.slice(0, 6).map((c) => (
@@ -66,7 +67,7 @@ export function NotificationBell() {
                     className="block px-4 py-3 hover:bg-canvas"
                   >
                     <span className="text-caption font-semibold text-muted">
-                      {c.id} · {fmtDateShort(c.createdAt)}
+                      {c.id} · {dateShort(c.createdAt)}
                     </span>
                     <span className="block text-body font-medium text-ink">{c.subject}</span>
                   </Link>
@@ -79,7 +80,7 @@ export function NotificationBell() {
             onClick={() => setOpen(false)}
             className="block border-t border-line px-4 py-3 text-center text-small font-semibold"
           >
-            সব নতুন অভিযোগ দেখুন
+            {t("সব নতুন অভিযোগ দেখুন")}
           </Link>
         </div>
       )}

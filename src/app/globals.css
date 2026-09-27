@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+/* Noto Sans Bengali (variable, extracted from the design bundle) */
+@font-face {
+  font-family: "Noto Sans Bengali";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/noto-sans-bengali-bengali.woff2") format("woff2");
+  unicode-range: U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA, U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
+}
+@font-face {
+  font-family: "Noto Sans Bengali";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/noto-sans-bengali-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Noto Sans Bengali";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/noto-sans-bengali-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  --font-sans: "Noto Sans Bengali", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-canvas: #f5f6f3;
+  --color-surface: #ffffff;
+  --color-line: #e1e4de;
+  --color-line-strong: #d8dbd5;
+  --color-ink: #171b19;
+  --color-ink-2: #3b423e;
+  --color-muted: #5c665f;
+  --color-faint: #626c65;
+
+  --color-primary: #0f6a4c;
+  --color-primary-hover: #0b4f39;
+  --color-primary-tint: #e7f3ec;
+  --color-on-primary: #ffffff;
+
+  --color-side: #10231c;
+  --color-side-active: #17352a;
+  --color-side-text: #cfe0d8;
+  --color-side-muted: #8fa79a;
+  --color-side-dot: #4b6259;
+  --color-side-dot-on: #4ade80;
+  --color-side-line: #1e3a30;
+
+  --color-st-new: #2457c1;
+  --color-st-new-bg: #e4ecfc;
+  --color-st-progress: #8a5a06;
+  --color-st-progress-bg: #fbedd3;
+  --color-st-resolved: #157a45;
+  --color-st-resolved-bg: #dff3e6;
+  --color-st-rejected: #c22c22;
+  --color-st-rejected-bg: #fbe4e1;
+  --color-st-review: #5b3fa6;
+  --color-st-review-bg: #ece6fa;
+
+  --text-caption: 12px;
+  --text-small: 13px;
+  --text-body: 14px;
+  --text-lead: 15px;
+  --text-h3: 16px;
+  --text-brand: 19px;
+  --text-h2: 22px;
+  --text-title: 24px;
+  --text-stat: 32px;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 14px;
+
+  --animate-fade-in: fade-in 150ms ease-out;
+  --animate-slide-in: slide-in 200ms ease-out;
+  --animate-pop: pop 160ms ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--color-canvas);
+    min-height: 100dvh;
+  }
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--color-primary-hover);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  button:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
+  ::placeholder {
+    color: var(--color-faint);
+    opacity: 1;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  .print-full {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}
